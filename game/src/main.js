@@ -25,7 +25,7 @@ Math.random = function() {
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(PALETTE.sky);
-scene.fog = new THREE.FogExp2(PALETTE.sky, 0.015);
+scene.fog = new THREE.FogExp2(PALETTE.sky, 0.012);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -34,11 +34,11 @@ renderer.shadowMap.enabled = true;
 container.appendChild(renderer.domElement);
 
 // Lighting
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+const ambientLight = new THREE.AmbientLight(0xfffaed, 0.7);
 scene.add(ambientLight);
 
-const dirLight = new THREE.DirectionalLight(0xfffaed, 0.8);
-dirLight.position.set(50, 100, 50);
+const dirLight = new THREE.DirectionalLight(0xfff5e6, 1.1);
+dirLight.position.set(60, 120, 60);
 dirLight.castShadow = true;
 scene.add(dirLight);
 
@@ -125,26 +125,49 @@ if (shotMode) {
   if (shotMode === 'start') {
     document.getElementById('start-screen').style.display = 'flex';
     document.getElementById('hud').style.display = 'none';
+    camera.position.set(0, 18, 45);
+    camera.lookAt(0, 0, 0);
   } else if (shotMode === 'buy') {
     buyMenuOpen = true;
     hud.toggleBuyMenu(true);
     roundManager.state = 'buy';
+    player.position.set(0, 0, 10);
+    camera.position.copy(player.position).add(new THREE.Vector3(0, player.eyeHeight, 0));
   } else if (shotMode === 'play') {
     roundManager.state = 'live';
     player.position.set(0, 0, 10);
-    // Position bots visibly
-    bots[0].position.set(5, 0, 5);
-    bots[5].position.set(-5, 0, -5);
+    camera.position.copy(player.position).add(new THREE.Vector3(0, player.eyeHeight, 0));
+    camera.lookAt(0, 1.5, -10);
+    // Position bots visibly in medium range
+    if (bots.length >= 8) {
+      bots[5].position.set(-2.5, 0, -6);
+      bots[5].mesh.position.copy(bots[5].position).add(new THREE.Vector3(0, 0.85, 0));
+      bots[6].position.set(2.0, 0, -8);
+      bots[6].mesh.position.copy(bots[6].position).add(new THREE.Vector3(0, 0.85, 0));
+      bots[7].position.set(0.5, 0, -5);
+      bots[7].mesh.position.copy(bots[7].position).add(new THREE.Vector3(0, 0.85, 0));
+    }
+    weaponSystem.muzzleFlash.visible = true;
   } else if (shotMode === 'end') {
     roundManager.state = 'ended';
+    roundManager.roundNum = 5;
+    roundManager.vanguardWins = 5;
+    roundManager.jackalWins = 3;
+    roundManager.timer = 0;
+    for (const b of bots) {
+      if (b.team === 'jackal') {
+        b.alive = false;
+        b.mesh.visible = false;
+      }
+    }
     hud.showBanner('ROUND WON', 'Vanguard eliminated the Jackals');
   }
 
-  // Force one render frame and set __shotReady
   renderer.render(scene, camera);
   setTimeout(() => {
+    renderer.render(scene, camera);
     window.__shotReady = true;
-  }, 100);
+  }, 150);
 }
 
 // Main Game Loop

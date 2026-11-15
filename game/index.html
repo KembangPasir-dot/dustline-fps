@@ -52,7 +52,7 @@
     #damage-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; box-shadow: inset 0 0 50px rgba(255, 0, 0, 0); transition: box-shadow 0.2s; }
 
     /* Buy Menu Overlay */
-    #buy-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: var(--hud-bg); border: 2px solid var(--amber); padding: 25px; border-radius: 8px; width: 400px; display: none; pointer-events: auto; }
+    #buy-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: var(--hud-bg); border: 2px solid var(--amber); padding: 25px; border-radius: 8px; width: 420px; display: none; pointer-events: auto; }
     #buy-menu h2 { color: var(--amber); margin-bottom: 15px; text-align: center; border-bottom: 1px solid var(--slate); padding-bottom: 8px; }
     .buy-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer; transition: background 0.2s; }
     .buy-item:hover { background: rgba(255,191,0,0.2); }
@@ -66,10 +66,10 @@
     #round-banner p { font-size: 18px; color: var(--sand); }
 
     /* Start / End Screens */
-    .screen-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(18, 20, 23, 0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; }
+    .screen-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(18, 20, 23, 0.82); display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; }
     .screen-overlay h1 { font-size: 64px; color: var(--amber); margin-bottom: 10px; letter-spacing: 6px; text-shadow: 0 0 20px rgba(255,191,0,0.4); }
     .screen-overlay h2 { font-size: 24px; color: var(--sand); margin-bottom: 30px; letter-spacing: 2px; }
-    .screen-overlay p { max-width: 600px; text-align: center; color: #aaa; line-height: 1.6; margin-bottom: 40px; font-size: 14px; }
+    .screen-overlay p { max-width: 600px; text-align: center; color: #ddd; line-height: 1.6; margin-bottom: 40px; font-size: 14px; }
     .btn { background: var(--amber); color: var(--dark); border: none; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 4px; cursor: pointer; letter-spacing: 1px; transition: transform 0.1s, background 0.2s; }
     .btn:hover { background: #ffca2c; transform: scale(1.05); }
 
@@ -99,7 +99,7 @@
         <span class="stat-label">ALIVE</span>
         <div class="stat-row">
           <div>VNG: <span id="vanguard-count" style="color:#00ff88">5</span></div>
-          <div>JKl: <span id="jackal-count" style="color:#ff4444">5</span></div>
+          <div>JKL: <span id="jackal-count" style="color:#ff4444">5</span></div>
         </div>
       </div>
     </div>
@@ -121,7 +121,7 @@
         </div>
       </div>
       <div class="panel" style="text-align: right;">
-        <span class="stat-label" id="stat-weapon-name">GLOCK PISTOL</span>
+        <span class="stat-label" id="stat-weapon-name">P9 SIDEARM</span>
         <div style="font-size: 28px; color: var(--amber);">
           <span id="stat-ammo-mag">12</span>/<span id="stat-ammo-reserve" style="font-size: 18px; color: var(--sand);">36</span>
         </div>
@@ -147,33 +147,33 @@
   <div id="buy-menu">
     <h2>BUY EQUIPMENT (B)</h2>
     <div class="buy-item" data-item="rifle">
-      <span>VPR-74 Assault Rifle</span>
+      <span>Marauder Rifle</span>
       <span class="buy-price">$2,700</span>
     </div>
     <div class="buy-item" data-item="smg">
-      <span>CX-9 Submachine Gun</span>
+      <span>Hornet SMG</span>
       <span class="buy-price">$1,500</span>
     </div>
     <div class="buy-item" data-item="sniper">
-      <span>HSR-50 Heavy Sniper</span>
+      <span>Longshot Sniper</span>
       <span class="buy-price">$4,750</span>
     </div>
     <div class="buy-item" data-item="armor">
-      <span>Combat Armour + Helmet</span>
+      <span>Combat Armor + Helmet</span>
       <span class="buy-price">$650</span>
     </div>
     <div class="buy-item" data-item="grenade">
-      <span>Frag / Flash Grenade</span>
+      <span>Impact Grenade</span>
       <span class="buy-price">$300</span>
     </div>
-    <div style="margin-top: 15px; text-align: center; font-size: 12px; color: #888;">Press [B] or [ESC] to close</div>
+    <div style="margin-top: 15px; text-align: center; font-size: 12px; color: #aaa;">Press [B] or [ESC] to close</div>
   </div>
 
   <!-- Start Screen -->
   <div id="start-screen" class="screen-overlay">
     <h1>DUSTLINE</h1>
     <h2>TACTICAL FPS</h2>
-    <p>Welcome to Dustline Yard. Vanguard attacks bombsites A and B defended by Jackals. Eliminate enemies, plant or defuse the tactical charge, and buy weapons between rounds.</p>
+    <p>Welcome to Dustline Yard. Vanguard attacks bombsites A and B defended by Jackals. Eliminate enemies, plant or defuse tactical charges, and purchase equipment between rounds.</p>
     <button id="start-btn" class="btn">DEPLOY TO BATTLE</button>
   </div>
 
