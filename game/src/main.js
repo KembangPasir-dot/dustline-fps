@@ -28,6 +28,7 @@ scene.background = new THREE.Color(PALETTE.sky);
 scene.fog = new THREE.FogExp2(PALETTE.sky, 0.012);
 
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
+scene.add(camera);
 const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 renderer.shadowMap.enabled = true;
@@ -122,6 +123,27 @@ if (shotMode) {
   document.getElementById('start-screen').style.display = 'none';
   document.getElementById('hud').style.display = 'flex';
 
+  function placeBotSafely(bot, targetPos) {
+    let pos = targetPos.clone();
+    const offsets = [
+      [0, 0], [1, 0], [-1, 0], [0, 1], [0, -1],
+      [2, 0], [-2, 0], [0, 2], [0, -2], [2, 2], [-2, -2]
+    ];
+    for (const [dx, dz] of offsets) {
+      const testPos = new THREE.Vector3(targetPos.x + dx, 0, targetPos.z + dz);
+      const box = new THREE.Box3(
+        new THREE.Vector3(testPos.x - 0.5, testPos.y, testPos.z - 0.5),
+        new THREE.Vector3(testPos.x + 0.5, testPos.y + 1.8, testPos.z + 0.5)
+      );
+      if (!world.checkCollision(box)) {
+        pos = testPos;
+        break;
+      }
+    }
+    bot.position.copy(pos);
+    bot.mesh.position.copy(pos).add(new THREE.Vector3(0, 0.85, 0));
+  }
+
   if (shotMode === 'start') {
     document.getElementById('start-screen').style.display = 'flex';
     document.getElementById('hud').style.display = 'none';
@@ -131,21 +153,19 @@ if (shotMode) {
     buyMenuOpen = true;
     hud.toggleBuyMenu(true);
     roundManager.state = 'buy';
-    player.position.set(0, 0, 10);
+    player.position.set(-14, 0, 26);
     camera.position.copy(player.position).add(new THREE.Vector3(0, player.eyeHeight, 0));
+    camera.lookAt(8, 1.2, -6);
   } else if (shotMode === 'play') {
     roundManager.state = 'live';
-    player.position.set(0, 0, 10);
+    player.position.set(-14, 0, 26);
     camera.position.copy(player.position).add(new THREE.Vector3(0, player.eyeHeight, 0));
-    camera.lookAt(0, 1.5, -10);
-    // Position bots visibly in medium range
+    camera.lookAt(8, 1.2, -6);
+    // Position bots visibly on open ground, checking colliders
     if (bots.length >= 8) {
-      bots[5].position.set(-2.5, 0, -6);
-      bots[5].mesh.position.copy(bots[5].position).add(new THREE.Vector3(0, 0.85, 0));
-      bots[6].position.set(2.0, 0, -8);
-      bots[6].mesh.position.copy(bots[6].position).add(new THREE.Vector3(0, 0.85, 0));
-      bots[7].position.set(0.5, 0, -5);
-      bots[7].mesh.position.copy(bots[7].position).add(new THREE.Vector3(0, 0.85, 0));
+      placeBotSafely(bots[5], new THREE.Vector3(-6, 0, -2));
+      placeBotSafely(bots[6], new THREE.Vector3(4, 0, -6));
+      placeBotSafely(bots[7], new THREE.Vector3(10, 0, 2));
     }
     weaponSystem.muzzleFlash.visible = true;
   } else if (shotMode === 'end') {
