@@ -1,12 +1,14 @@
 import { writeFileSync, mkdirSync, cpSync, existsSync, readdirSync, statSync } from 'node:fs';
-import { resolve, join } from 'node:path';
+import { resolve, join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { buildDossier } from './vendor/makefun-threejs.ts';
 
+const scriptDir = dirname(fileURLToPath(import.meta.url));
 const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
 mkdirSync(outDir, { recursive: true });
 
 // Verify screenshots exist and meet size limits (max 256 KiB each, count 3 or 4)
-const screenshotsDir = 'screenshots';
+const screenshotsDir = join(scriptDir, 'screenshots');
 if (!existsSync(screenshotsDir)) {
   throw new Error(`Error: screenshots directory '${screenshotsDir}' does not exist.`);
 }
@@ -25,11 +27,11 @@ for (const file of shotFiles) {
   }
 }
 
-if (existsSync('game')) {
-  cpSync('game', join(outDir, 'game'), { recursive: true });
+if (existsSync(join(scriptDir, 'game'))) {
+  cpSync(join(scriptDir, 'game'), join(outDir, 'game'), { recursive: true });
 }
-if (existsSync('screenshots')) {
-  cpSync('screenshots', join(outDir, 'screenshots'), { recursive: true });
+if (existsSync(join(scriptDir, 'screenshots'))) {
+  cpSync(join(scriptDir, 'screenshots'), join(outDir, 'screenshots'), { recursive: true });
 }
 
 const dossierBytes = buildDossier(outDir, {
