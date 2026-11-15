@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>DUSTLINE - Tactical FPS</title>
+  <style>
+    :root {
+      --sand: #c2b280;
+      --rust: #a0522d;
+      --slate: #2f4f4f;
+      --amber: #ffbf00;
+      --dark: #121417;
+      --hud-bg: rgba(18, 20, 23, 0.85);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
+    body, html { width: 100%; height: 100%; overflow: hidden; background: var(--dark); font-family: monospace, sans-serif; color: #fff; }
+    #canvas-container { width: 100%; height: 100%; position: absolute; top: 0; left: 0; z-index: 1; }
+
+    /* HUD */
+    #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; display: flex; flex-direction: column; justify-content: space-between; padding: 20px; }
+    .hud-top { display: flex; justify-content: space-between; align-items: flex-start; }
+    .hud-bottom { display: flex; justify-content: space-between; align-items: flex-end; }
+    
+    .panel { background: var(--hud-bg); border: 1px solid var(--slate); padding: 10px 15px; border-radius: 4px; backdrop-filter: blur(4px); }
+    .stat-row { display: flex; gap: 15px; font-size: 16px; font-weight: bold; }
+    .stat-label { color: var(--sand); font-size: 10px; display: block; margin-bottom: 2px; }
+    .stat-value { color: var(--amber); font-size: 20px; }
+
+    #timer-panel { text-align: center; font-size: 24px; color: var(--amber); letter-spacing: 2px; }
+    #score-panel { text-align: center; font-size: 14px; color: var(--sand); }
+
+    /* Crosshair */
+    #crosshair { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3; pointer-events: none; width: 20px; height: 20px; }
+    .cross-line { position: absolute; background: rgba(255, 191, 0, 0.8); transition: transform 0.05s; }
+    .cross-top { top: 0; left: 9px; width: 2px; height: 6px; }
+    .cross-bottom { bottom: 0; left: 9px; width: 2px; height: 6px; }
+    .cross-left { top: 9px; left: 0; width: 6px; height: 2px; }
+    .cross-right { top: 9px; right: 0; width: 6px; height: 2px; }
+
+    /* Hitmarker */
+    #hitmarker { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 3; pointer-events: none; width: 16px; height: 16px; opacity: 0; transition: opacity 0.1s; }
+    #hitmarker::before, #hitmarker::after { content: ''; position: absolute; background: #ff3333; }
+    #hitmarker::before { top: 7px; left: 0; width: 16px; height: 2px; transform: rotate(45deg); }
+    #hitmarker::after { top: 7px; left: 0; width: 16px; height: 2px; transform: rotate(-45deg); }
+
+    /* Kill feed */
+    #killfeed { position: absolute; top: 20px; right: 20px; z-index: 3; pointer-events: none; display: flex; flex-direction: column; gap: 5px; align-items: flex-end; }
+    .kill-item { background: rgba(0,0,0,0.7); padding: 4px 8px; font-size: 12px; border-radius: 2px; border-left: 3px solid var(--rust); animation: fadeOut 4s forwards; }
+    @keyframes fadeOut { 0% { opacity: 1; } 70% { opacity: 1; } 100% { opacity: 0; display: none; } }
+
+    /* Damage indicator */
+    #damage-indicator { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; pointer-events: none; box-shadow: inset 0 0 50px rgba(255, 0, 0, 0); transition: box-shadow 0.2s; }
+
+    /* Buy Menu Overlay */
+    #buy-menu { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 10; background: var(--hud-bg); border: 2px solid var(--amber); padding: 25px; border-radius: 8px; width: 400px; display: none; pointer-events: auto; }
+    #buy-menu h2 { color: var(--amber); margin-bottom: 15px; text-align: center; border-bottom: 1px solid var(--slate); padding-bottom: 8px; }
+    .buy-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 4px; cursor: pointer; transition: background 0.2s; }
+    .buy-item:hover { background: rgba(255,191,0,0.2); }
+    .buy-item.disabled { opacity: 0.4; cursor: not-allowed; }
+    .buy-item span { font-size: 14px; }
+    .buy-price { color: var(--amber); font-weight: bold; }
+
+    /* Round Banner */
+    #round-banner { position: absolute; top: 30%; left: 50%; transform: translate(-50%, -50%); z-index: 5; text-align: center; pointer-events: none; opacity: 0; transition: opacity 0.3s; }
+    #round-banner h1 { font-size: 48px; color: var(--amber); text-shadow: 0 0 10px rgba(0,0,0,0.8); margin-bottom: 5px; letter-spacing: 3px; }
+    #round-banner p { font-size: 18px; color: var(--sand); }
+
+    /* Start / End Screens */
+    .screen-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 20; background: rgba(18, 20, 23, 0.92); display: flex; flex-direction: column; justify-content: center; align-items: center; pointer-events: auto; }
+    .screen-overlay h1 { font-size: 64px; color: var(--amber); margin-bottom: 10px; letter-spacing: 6px; text-shadow: 0 0 20px rgba(255,191,0,0.4); }
+    .screen-overlay h2 { font-size: 24px; color: var(--sand); margin-bottom: 30px; letter-spacing: 2px; }
+    .screen-overlay p { max-width: 600px; text-align: center; color: #aaa; line-height: 1.6; margin-bottom: 40px; font-size: 14px; }
+    .btn { background: var(--amber); color: var(--dark); border: none; padding: 12px 30px; font-size: 18px; font-weight: bold; border-radius: 4px; cursor: pointer; letter-spacing: 1px; transition: transform 0.1s, background 0.2s; }
+    .btn:hover { background: #ffca2c; transform: scale(1.05); }
+
+    #bomb-status { position: absolute; top: 20px; left: 50%; transform: translateX(-50%); z-index: 2; pointer-events: none; font-size: 14px; background: var(--hud-bg); padding: 5px 12px; border-radius: 4px; border: 1px solid var(--rust); display: none; }
+  </style>
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "./vendor/three/three.module.min.js"
+      }
+    }
+  </script>
+</head>
+<body>
+  <div id="canvas-container"></div>
+  <div id="damage-indicator"></div>
+
+  <!-- HUD -->
+  <div id="hud" style="display: none;">
+    <div class="hud-top">
+      <div class="panel">
+        <div id="score-panel">ROUND 1/9 | VANGUARD 0 - 0 JACKALS</div>
+        <div id="timer-panel">01:40</div>
+      </div>
+      <div id="bomb-status">BOMB PLANTED AT SITE A</div>
+      <div class="panel">
+        <span class="stat-label">ALIVE</span>
+        <div class="stat-row">
+          <div>VNG: <span id="vanguard-count" style="color:#00ff88">5</span></div>
+          <div>JKl: <span id="jackal-count" style="color:#ff4444">5</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="hud-bottom">
+      <div class="panel">
+        <div style="display: flex; gap: 20px;">
+          <div>
+            <span class="stat-label">HEALTH</span>
+            <span id="stat-hp" class="stat-value">100</span>
+          </div>
+          <div>
+            <span class="stat-label">ARMOUR</span>
+            <span id="stat-armor" class="stat-value">0</span>
+          </div>
+          <div>
+            <span class="stat-label">MONEY</span>
+            <span id="stat-money" class="stat-value">$800</span>
+          </div>
+        </div>
+      </div>
+      <div class="panel" style="text-align: right;">
+        <span class="stat-label" id="stat-weapon-name">GLOCK PISTOL</span>
+        <div style="font-size: 28px; color: var(--amber);">
+          <span id="stat-ammo-mag">12</span>/<span id="stat-ammo-reserve" style="font-size: 18px; color: var(--sand);">36</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="crosshair">
+    <div class="cross-line cross-top"></div>
+    <div class="cross-line cross-bottom"></div>
+    <div class="cross-line cross-left"></div>
+    <div class="cross-line cross-right"></div>
+  </div>
+  <div id="hitmarker"></div>
+  <div id="killfeed"></div>
+
+  <div id="round-banner">
+    <h1 id="banner-title">ROUND WON</h1>
+    <p id="banner-sub">Vanguard eliminated the Jackals</p>
+  </div>
+
+  <!-- Buy Menu -->
+  <div id="buy-menu">
+    <h2>BUY EQUIPMENT (B)</h2>
+    <div class="buy-item" data-item="rifle">
+      <span>VPR-74 Assault Rifle</span>
+      <span class="buy-price">$2,700</span>
+    </div>
+    <div class="buy-item" data-item="smg">
+      <span>CX-9 Submachine Gun</span>
+      <span class="buy-price">$1,500</span>
+    </div>
+    <div class="buy-item" data-item="sniper">
+      <span>HSR-50 Heavy Sniper</span>
+      <span class="buy-price">$4,750</span>
+    </div>
+    <div class="buy-item" data-item="armor">
+      <span>Combat Armour + Helmet</span>
+      <span class="buy-price">$650</span>
+    </div>
+    <div class="buy-item" data-item="grenade">
+      <span>Frag / Flash Grenade</span>
+      <span class="buy-price">$300</span>
+    </div>
+    <div style="margin-top: 15px; text-align: center; font-size: 12px; color: #888;">Press [B] or [ESC] to close</div>
+  </div>
+
+  <!-- Start Screen -->
+  <div id="start-screen" class="screen-overlay">
+    <h1>DUSTLINE</h1>
+    <h2>TACTICAL FPS</h2>
+    <p>Welcome to Dustline Yard. Vanguard attacks bombsites A and B defended by Jackals. Eliminate enemies, plant or defuse the tactical charge, and buy weapons between rounds.</p>
+    <button id="start-btn" class="btn">DEPLOY TO BATTLE</button>
+  </div>
+
+  <!-- End Screen -->
+  <div id="end-screen" class="screen-overlay" style="display: none;">
+    <h1 id="end-title">MATCH OVER</h1>
+    <h2 id="end-sub">Vanguard wins the match 5-2</h2>
+    <button id="restart-btn" class="btn">PLAY AGAIN</button>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
